@@ -1,0 +1,81 @@
+syntax = "proto3";
+
+package trip;
+
+option go_package = "ride-sharing/proto/trip";
+
+// TripService provides RPC methods for trip operations
+service TripService {
+  // PreviewTrip calculates route and fare options without creating a trip
+  rpc PreviewTrip(PreviewTripRequest) returns (PreviewTripResponse);
+  
+  // CreateTrip creates a new trip with the selected fare
+  rpc CreateTrip(CreateTripRequest) returns (CreateTripResponse);
+}
+
+// PreviewTripRequest contains the pickup and destination coordinates
+message PreviewTripRequest {
+  string user_id = 1;
+  Coordinate pickup = 2;
+  Coordinate destination = 3;
+}
+
+// PreviewTripResponse contains the calculated route and fare options
+message PreviewTripResponse {
+  Route route = 1;
+  repeated RouteFare ride_fares = 2;
+}
+
+// CreateTripRequest contains the information needed to create a trip
+message CreateTripRequest {
+  string user_id = 1;
+  string fare_id = 2;
+  Coordinate pickup = 3;
+  Coordinate destination = 4;
+}
+
+// CreateTripResponse contains the created trip information
+message CreateTripResponse {
+  string trip_id = 1;
+  TripStatus status = 2;
+}
+
+// Coordinate represents a geographic location
+message Coordinate {
+  double latitude = 1;
+  double longitude = 2;
+}
+
+// Route represents the calculated route information
+message Route {
+  double distance = 1;  // in meters
+  double duration = 2; // in seconds
+  repeated Geometry geometry = 3;
+}
+
+// Geometry represents a geometry segment of the route
+message Geometry {
+  repeated Coordinate coordinates = 1;
+}
+
+// RouteFare represents pricing information for a route
+message RouteFare {
+  string id = 1;
+  string package_slug = 2;
+  double base_price = 3;
+  int64 total_price_in_cents = 4;
+  int64 expires_at = 5; // Unix timestamp
+  Route route = 6;
+}
+
+// TripStatus represents the current status of a trip
+enum TripStatus {
+  TRIP_STATUS_UNSPECIFIED = 0;
+  TRIP_STATUS_PENDING = 1;
+  TRIP_STATUS_CREATED = 2;
+  TRIP_STATUS_DRIVER_FOUND = 3;
+  TRIP_STATUS_DRIVER_ASSIGNED = 4;
+  TRIP_STATUS_IN_PROGRESS = 5;
+  TRIP_STATUS_COMPLETED = 6;
+  TRIP_STATUS_CANCELLED = 7;
+}
